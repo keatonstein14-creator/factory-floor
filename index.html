@@ -506,7 +506,7 @@ Respond ONLY in this JSON format, no preamble, no markdown:
   async function apolloSearch(title, domain, location, apolloKey) {
     const body = {
       person_titles: [title],
-      q_organization_domains_list: [domain],
+      q_organization_domains: domain,
       per_page: 1,
       page: 1
     };
