@@ -502,7 +502,7 @@ Respond ONLY in this JSON format, no preamble, no markdown:
     return JSON.parse(clean);
   }
 
- // ── Step 2: Apollo searches for real people ──────────────────────
+  // ── Step 2: Apollo searches for real people ──────────────────────
   async function apolloSearch(title, domain, location, apolloKey) {
     // Sanitize domain: strip https://, www., trailing slashes
     const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').trim();
@@ -527,7 +527,8 @@ Respond ONLY in this JSON format, no preamble, no markdown:
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `Apollo error ${res.status}`);
+      const detail = JSON.stringify(err);
+      throw new Error(`Apollo ${res.status}: ${detail}`);
     }
 
     const data = await res.json();
