@@ -502,11 +502,14 @@ Respond ONLY in this JSON format, no preamble, no markdown:
     return JSON.parse(clean);
   }
 
-  // ── Step 2: Apollo searches for real people ──────────────────────
+ // ── Step 2: Apollo searches for real people ──────────────────────
   async function apolloSearch(title, domain, location, apolloKey) {
+    // Sanitize domain: strip https://, www., trailing slashes
+    const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '').trim();
+
     const body = {
       person_titles: [title],
-      q_organization_domains: domain,
+      organization_domains: [cleanDomain],
       per_page: 1,
       page: 1
     };
