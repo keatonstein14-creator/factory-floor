@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Factory Floor</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #1c1c1f;
+      --bg2: #242428;
+      --bg3: #2c2c31;
+      --border: #38383d;
+      --border2: #48484f;
+      --text: #e5e5ea;
+      --text2: #9090a0;
+      --text3: #58585f;
+      --blue: #4d9cf8;
+      --blue2: #2563eb;
+      --blue-dim: rgba(77, 156, 248, 0.09);
+      --blue-dim2: rgba(77, 156, 248, 0.16);
+      --green: #34c78a;
+      --green-dim: rgba(52, 199, 138, 0.1);
+      --red: #ff6b6b;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+    /* Setup Screen */
+    .setup-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,12,0.92);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .setup-overlay.visible { display: flex; }
+
+    .setup-box {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 40px;
+      width: 100%;
+      max-width: 520px;
+      margin: 24px;
+    }
+
+    .setup-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--blue);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .setup-sub {
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    .setup-field { margin-bottom: 20px; }
+
+    .setup-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .setup-hint {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    .setup-input {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 11px 14px;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    .setup-input:focus { border-color: var(--blue); }
+
+    .setup-btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--blue2);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.15s;
+    }
+    .setup-btn:hover { background: #1d4ed8; }
+
+    .setup-note {
+      margin-top: 16px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text3);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* Header */
+    header { padding: 48px 0 32px; border-bottom: 1px solid var(--border); }
+    .header-inner { display: flex; align-items: flex-end; justify-content: space-between; }
+    .logo { display: flex; flex-direction: column; gap: 4px; }
+    .logo-mark { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--blue); letter-spacing: 0.15em; text-transform: uppercase; }
+    .logo-name { font-family: var(--mono); font-size: 28px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+    .logo-name span { color: var(--blue); }
+    .header-meta { text-align: right; }
+    .header-meta p { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.05em; }
+
+    .key-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--green);
+      margin-top: 6px;
+      justify-content: flex-end;
+      cursor: pointer;
+    }
+    .key-status:hover { color: var(--blue); }
+    .key-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+    /* Tagline */
+    .tagline { padding: 40px 0; border-bottom: 1px solid var(--border); }
+    .tagline h1 { font-size: 18px; font-weight: 400; color: var(--text2); line-height: 1.6; max-width: 620px; }
+    .tagline .insight { margin-top: 16px; display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--blue-dim); border: 1px solid rgba(77, 156, 248, 0.18); border-radius: 4px; max-width: 620px; }
+    .insight-icon { font-family: var(--mono); font-size: 11px; color: var(--blue); font-weight: 600; padding-top: 2px; white-space: nowrap; }
+    .insight p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+    /* Input */
+    .input-section { padding: 40px 0; border-bottom: 1px solid var(--border); }
+    .input-label { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
+    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-sublabel { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; }
+
+    input[type="text"], textarea {
+      background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px; color: var(--text);
+      font-family: var(--mono); font-size: 13px; padding: 12px 14px; outline: none;
+      transition: border-color 0.15s, background 0.15s; width: 100%;
+    }
+    input[type="text"]::placeholder, textarea::placeholder { color: var(--text3); }
+    input[type="text"]:focus, textarea:focus { border-color: var(--blue); background: var(--bg3); }
+    textarea { resize: none; height: 80px; line-height: 1.5; }
+
+    .run-btn {
+      margin-top: 4px; display: flex; align-items: center; gap: 10px;
+      background: var(--blue2); color: #fff; border: none; border-radius: 4px;
+      padding: 13px 24px; font-family: var(--mono); font-size: 13px; font-weight: 600;
+      letter-spacing: 0.05em; cursor: pointer; transition: background 0.15s, transform 0.1s;
+    }
+    .run-btn:hover { background: #1d4ed8; }
+    .run-btn:active { transform: scale(0.98); }
+    .run-btn:disabled { background: var(--border2); color: var(--text3); cursor: not-allowed; transform: none; }
+
+    /* Status */
+    .status-bar { display: none; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px; margin-top: 16px; }
+    .status-bar.visible { display: flex; }
+    .spinner { width: 14px; height: 14px; border: 2px solid var(--border2); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .status-text { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+    .status-step { color: var(--blue); font-weight: 600; }
+
+    /* Error */
+    .error-box { display: none; padding: 14px 16px; background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.2); border-radius: 4px; margin-top: 16px; }
+    .error-box.visible { display: block; }
+    .error-box p { font-family: var(--mono); font-size: 12px; color: var(--red); }
+
+    /* Results */
+    .results-section { padding: 40px 0; display: none; }
+    .results-section.visible { display: block; }
+    .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .results-title { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; }
+    .results-count { font-family: var(--mono); font-size: 11px; color: var(--blue); letter-spacing: 0.05em; }
+
+    .query-summary { display: flex; gap: 24px; padding: 14px 16px; background: var(--bg2); border: 1px solid var(--border2); border-radius: 4px; margin-bottom: 24px; }
+    .qs-item { display: flex; flex-direction: column; gap: 3px; }
+    .qs-label { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; }
+    .qs-value { font-family: var(--mono); font-size: 12px; color: var(--text); font-weight: 500; }
+
+    .experts-grid { display: flex; flex-direction: column; gap: 12px; }
+
+    .expert-card {
+      background: var(--bg2); border: 1px solid var(--border2); border-radius: 6px;
+      overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s; animation: fadeUp 0.3s ease both;
+    }
+    .expert-card:hover { border-color: rgba(77, 156, 248, 0.35); box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 16px 20px 12px; border-bottom: 1px solid var(--border); background: var(--bg3); }
+    .card-left { display: flex; align-items: flex-start; gap: 14px; }
+    .card-index { font-family: var(--mono); font-size: 10px; color: var(--blue); font-weight: 600; padding-top: 3px; min-width: 20px; }
+    .card-title-block { display: flex; flex-direction: column; gap: 3px; }
+    .card-name { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.2; }
+    .card-title { font-size: 13px; color: var(--text2); margin-top: 1px; }
+    .card-org { font-family: var(--mono); font-size: 11px; color: var(--blue); margin-top: 2px; }
+    .card-location { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+    .card-body { padding: 14px 20px 14px 54px; }
+    .reasoning-label { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+    .reasoning-text { font-size: 13px; color: var(--text2); line-height: 1.55; }
+
+    .hook-block { margin-top: 12px; padding: 10px 12px; background: var(--blue-dim); border-left: 2px solid var(--blue); border-radius: 0 3px 3px 0; }
+    .hook-label { font-family: var(--mono); font-size: 9px; color: var(--blue); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+    .hook-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+    .email-block { margin-top: 10px; padding: 10px 12px; background: var(--green-dim); border-left: 2px solid var(--green); border-radius: 0 3px 3px 0; }
+    .email-label { font-family: var(--mono); font-size: 9px; color: var(--green); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+    .email-value { font-family: var(--mono); font-size: 12px; color: var(--text); }
+
+    .card-footer { display: flex; align-items: center; gap: 8px; padding: 10px 20px 10px 54px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+
+    .contact-btn {
+      display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 3px;
+      font-family: var(--mono); font-size: 11px; font-weight: 500; text-decoration: none;
+      border: 1px solid var(--border2); color: var(--text2); background: transparent;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .contact-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
+    .contact-icon { font-size: 13px; }
+
+    /* Footer */
+    footer { padding: 32px 0; border-top: 1px solid var(--border); margin-top: 20px; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; }
+    .footer-left { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+    .footer-right { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+    .footer-right span { color: var(--blue); }
+
+    @media (max-width: 600px) {
+      .input-row { grid-template-columns: 1fr; }
+      .header-meta { display: none; }
+      .query-summary { flex-direction: column; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Setup Overlay -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-box">
+    <div class="setup-title">// API Key Setup</div>
+    <p class="setup-sub">Enter your API keys to get started. These are saved in your browser and never shared.</p>
+
+    <div class="setup-field">
+      <label class="setup-label">Anthropic API Key</label>
+      <input type="text" class="setup-input" id="setupAnthropicKey" placeholder="sk-ant-..." />
+      <div class="setup-hint">console.anthropic.com → API Keys</div>
+    </div>
+
+    <div class="setup-field">
+      <label class="setup-label">Apollo API Key (Master)</label>
+      <input type="text" class="setup-input" id="setupApolloKey" placeholder="Paste your master API key..." />
+      <div class="setup-hint">apollo.io → Settings → API → Create Key → select Master</div>
+    </div>
+
+    <button class="setup-btn" onclick="saveKeys()">Save Keys and Continue</button>
+    <div class="setup-note">Keys are stored locally in your browser only.<br>Each person using this tool enters their own keys.</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-mark">Primary Research Intelligence</span>
+        <span class="logo-name">Factory<span>Floor</span></span>
+      </div>
+      <div class="header-meta">
+        <p>POWERED BY CLAUDE + APOLLO</p>
+        <p style="margin-top:4px;">V 3.0 — PRIVATE BETA</p>
+        <div class="key-status" onclick="showSetup()" id="keyStatus" style="display:none;">
+          <span class="key-dot"></span> Keys configured — click to update
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="tagline">
+    <h1>
+      Expert networks give you the same senior executives everyone else talks to.
+      Factory Floor finds the people actually on the ground —
+      the ones who know what's really happening.
+    </h1>
+    <div class="insight">
+      <span class="insight-icon">// WHY</span>
+      <p>
+        The person running the day-to-day operation knows more than the VP who oversees ten sites.
+        The ground-level buyer at a key customer knows more about pricing pressure than any earnings call.
+        These people are invisible to AlphaSight and GLG. They're not here.
+      </p>
+    </div>
+  </div>
+
+  <div class="input-section">
+    <div class="input-label">// New Query</div>
+    <div class="input-row">
+      <div class="input-group">
+        <span class="input-sublabel">Company</span>
+        <input type="text" id="company" placeholder="e.g. AB Dynamics, CF Industries" />
+      </div>
+      <div class="input-group">
+        <span class="input-sublabel">What You're Investigating</span>
+        <input type="text" id="angle" placeholder="e.g. testing demand, ammonia supply response" />
+      </div>
+    </div>
+    <div class="input-group" style="margin-bottom:16px;">
+      <span class="input-sublabel">Additional Context <span style="color:var(--text3);font-size:9px;">(optional)</span></span>
+      <textarea id="context" placeholder="Any specific concerns, hypotheses, or areas of focus..."></textarea>
+    </div>
+    <button class="run-btn" id="runBtn" onclick="runQuery()">
+      <span class="btn-icon">⬡</span>
+      Find Ground-Level Contacts
+    </button>
+
+    <div class="status-bar" id="statusBar">
+      <div class="spinner"></div>
+      <span class="status-text"><span class="status-step" id="statusStep">ANALYZING</span> — <span id="statusMsg">Identifying the right roles and organizations to target...</span></span>
+    </div>
+
+    <div class="error-box" id="errorBox">
+      <p id="errorMsg">An error occurred. Please try again.</p>
+    </div>
+  </div>
+
+  <div class="results-section" id="resultsSection">
+    <div class="results-header">
+      <span class="results-title">// Ground-Level Contacts</span>
+      <span class="results-count" id="resultsCount">— contacts identified</span>
+    </div>
+    <div class="query-summary" id="querySummary"></div>
+    <div class="experts-grid" id="expertsGrid"></div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-left">FACTORY FLOOR — V3.0 PRIVATE BETA</span>
+      <span class="footer-right">Built for <span>fundamental equity research</span></span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // ── Key management ──────────────────────────────────────────────
+  function getKeys() {
+    return {
+      anthropic: localStorage.getItem('ff_anthropic_key') || '',
+      apollo: localStorage.getItem('ff_apollo_key') || ''
+    };
+  }
+
+  function saveKeys() {
+    const ak = document.getElementById('setupAnthropicKey').value.trim();
+    const apk = document.getElementById('setupApolloKey').value.trim();
+    if (!ak || !apk) { alert('Please enter both API keys.'); return; }
+    localStorage.setItem('ff_anthropic_key', ak);
+    localStorage.setItem('ff_apollo_key', apk);
+    document.getElementById('setupOverlay').classList.remove('visible');
+    document.getElementById('keyStatus').style.display = 'flex';
+  }
+
+  function showSetup() {
+    const keys = getKeys();
+    document.getElementById('setupAnthropicKey').value = keys.anthropic;
+    document.getElementById('setupApolloKey').value = keys.apollo;
+    document.getElementById('setupOverlay').classList.add('visible');
+  }
+
+  window.addEventListener('load', () => {
+    const keys = getKeys();
+    if (!keys.anthropic || !keys.apollo) {
+      showSetup();
+    } else {
+      document.getElementById('keyStatus').style.display = 'flex';
+    }
+  });
+
+  // ── Status cycling ───────────────────────────────────────────────
+  const STEPS = [
+    { step: 'ANALYZING', msg: 'Identifying the right roles and organizations to target...' },
+    { step: 'SEARCHING', msg: 'Querying Apollo database for real contacts...' },
+    { step: 'BUILDING', msg: 'Constructing contact profiles and outreach intelligence...' },
+  ];
+  let stepIdx = 0, stepTimer = null;
+
+  function setStatus(step, msg) {
+    document.getElementById('statusStep').textContent = step;
+    document.getElementById('statusMsg').textContent = msg;
+  }
+
+  function startStatus() {
+    stepIdx = 0;
+    setStatus(STEPS[0].step, STEPS[0].msg);
+    stepTimer = setInterval(() => {
+      stepIdx = (stepIdx + 1) % STEPS.length;
+      setStatus(STEPS[stepIdx].step, STEPS[stepIdx].msg);
+    }, 3000);
+  }
+
+  function stopStatus() {
+    clearInterval(stepTimer);
+    document.getElementById('statusBar').classList.remove('visible');
+  }
+
+  // ── Researcher context ───────────────────────────────────────────
+  const RESEARCHER_CONTEXT = `You are helping a first-year investment banking analyst at RBC Capital Markets (Industrials coverage: chemicals, automotive, industrial minerals, capital goods) who is independently pursuing a career in fundamental equity investing. He has written a 25-page memo on AB Dynamics (LON: ABDP), an AIM-listed automotive testing equipment company, and is knowledgeable about UK AIM small caps, industrial chemicals (ammonia, lime, cement, aggregates), and automotive safety testing.`;
+
+  // ── Step 1: Claude identifies search targets ─────────────────────
+  async function getSearchTargets(company, angle, context, anthropicKey) {
+    const prompt = `${RESEARCHER_CONTEXT}
+
+The analyst is researching: ${company}
+Research angle: ${angle}
+${context ? `Additional context: ${context}` : ''}
+
+Identify exactly 3 types of ground-level operational people who would have direct, non-consensus knowledge about "${angle}" at or adjacent to ${company}. These are NOT senior executives.
+
+For each, return:
+- title: a specific job title to search for (e.g. "Proving Ground Test Technician")
+- org_domain: the company domain to search at (e.g. "abdynamics.com") — use the company's own domain, OR a key supplier/customer/regulator domain if more relevant
+- org_name: readable name of that organization
+- org_type: company / supplier / customer / regulator / industry body
+- reasoning: 2-3 sentences on why this person has ground-level insight a senior exec would not have
+- hook: a specific, genuine conversation opener — what makes this person likely to talk to an independent researcher? Be concrete about their role.
+
+Also return the company's likely LinkedIn location filter (city or country, e.g. "United Kingdom" for AB Dynamics).
+
+Respond ONLY in this JSON format, no preamble, no markdown:
+{
+  "location": "United Kingdom",
+  "targets": [
+    {
+      "title": "exact job title",
+      "org_domain": "company.com",
+      "org_name": "Organization Name",
+      "org_type": "company",
+      "reasoning": "...",
+      "hook": "..."
+    }
+  ]
+}`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const raw = data.content?.find(b => b.type === 'text')?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+  }
+
+  // ── Step 2: Apollo searches for real people ──────────────────────
+  async function apolloSearch(title, domain, location, apolloKey) {
+    const body = {
+      person_titles: [title],
+      q_organization_domains_list: [domain],
+      per_page: 1,
+      page: 1
+    };
+    if (location) body.person_locations = [location];
+
+    const res = await fetch('/api/proxy', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'x-apollo-key': apolloKey
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Apollo error ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data.people?.[0] || null;
+  }
+
+  // ── Main query ───────────────────────────────────────────────────
+  async function runQuery() {
+    const company = document.getElementById('company').value.trim();
+    const angle = document.getElementById('angle').value.trim();
+    const context = document.getElementById('context').value.trim();
+    const keys = getKeys();
+
+    if (!company || !angle) {
+      showError('Please enter both a company and the angle you are investigating.');
+      return;
+    }
+    if (!keys.anthropic || !keys.apollo) {
+      showSetup();
+      return;
+    }
+
+    document.getElementById('errorBox').classList.remove('visible');
+    document.getElementById('resultsSection').classList.remove('visible');
+    document.getElementById('runBtn').disabled = true;
+    document.getElementById('statusBar').classList.add('visible');
+    startStatus();
+
+    try {
+      // Step 1: Claude figures out who to search for
+      setStatus('ANALYZING', 'Identifying the right roles and organizations to target...');
+      const { targets, location } = await getSearchTargets(company, angle, context, keys.anthropic);
+
+      // Step 2: Apollo finds real people for each target
+      setStatus('SEARCHING', 'Querying Apollo database for real contacts...');
+      const results = [];
+
+      for (const target of targets) {
+        const person = await apolloSearch(target.title, target.org_domain, location, keys.apollo);
+        results.push({ target, person });
+      }
+
+      stopStatus();
+      document.getElementById('runBtn').disabled = false;
+
+      renderResults(company, angle, results);
+
+    } catch (err) {
+      stopStatus();
+      document.getElementById('runBtn').disabled = false;
+      showError(err.message || 'Something went wrong. Please try again.');
+    }
+  }
+
+  function showError(msg) {
+    document.getElementById('errorBox').classList.add('visible');
+    document.getElementById('errorMsg').textContent = msg;
+  }
+
+  // ── Render results ───────────────────────────────────────────────
+  function renderResults(company, angle, results) {
+    const found = results.filter(r => r.person).length;
+
+    document.getElementById('querySummary').innerHTML = `
+      <div class="qs-item">
+        <span class="qs-label">Company</span>
+        <span class="qs-value">${escHtml(company)}</span>
+      </div>
+      <div class="qs-item">
+        <span class="qs-label">Research Angle</span>
+        <span class="qs-value">${escHtml(angle)}</span>
+      </div>
+      <div class="qs-item">
+        <span class="qs-label">Real People Found</span>
+        <span class="qs-value" style="color:var(--blue)">${found} of ${results.length}</span>
+      </div>
+    `;
+    document.getElementById('resultsCount').textContent = `${found} contacts identified`;
+
+    const grid = document.getElementById('expertsGrid');
+    grid.innerHTML = '';
+
+    results.forEach(({ target, person }, i) => {
+      const card = document.createElement('div');
+      card.className = 'expert-card';
+      card.style.animationDelay = `${i * 0.06}s`;
+
+      const name = person
+        ? `${person.first_name || ''} ${person.last_name || ''}`.trim()
+        : null;
+      const actualTitle = person?.title || target.title;
+      const actualOrg = person?.organization?.name || target.org_name;
+      const liUrl = person?.linkedin_url
+        ? (person.linkedin_url.startsWith('http') ? person.linkedin_url : 'https://' + person.linkedin_url)
+        : `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(target.title + ' ' + target.org_name)}`;
+      const liLabel = person?.linkedin_url ? 'LinkedIn Profile' : 'LinkedIn Search';
+      const city = person?.city ? `${person.city}${person.country ? ', ' + person.country : ''}` : '';
+      const email = person?.email;
+
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-left">
+            <span class="card-index">0${i+1}</span>
+            <div class="card-title-block">
+              ${name
+                ? `<span class="card-name">${escHtml(name)}</span>`
+                : `<span class="card-name" style="color:var(--text3);font-style:italic;">No match found — try broader title</span>`}
+              <span class="card-title">${escHtml(actualTitle)}</span>
+              <span class="card-org">${escHtml(actualOrg)}</span>
+              ${city ? `<span class="card-location">${escHtml(city)}</span>` : ''}
+            </div>
+          </div>
+          <span class="card-badge" style="color:${person ? 'var(--green)' : 'var(--text3)'};border-color:${person ? 'rgba(52,199,138,0.3)' : 'var(--border2)'};">
+            ${person ? '● REAL PERSON' : '○ NO MATCH'}
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="reasoning-label">// Why They Know</div>
+          <p class="reasoning-text">${escHtml(target.reasoning)}</p>
+          <div class="hook-block">
+            <div class="hook-label">// How To Open</div>
+            <p class="hook-text">${escHtml(target.hook)}</p>
+          </div>
+          ${email ? `
+          <div class="email-block">
+            <div class="email-label">// Email</div>
+            <span class="email-value">${escHtml(email)}</span>
+          </div>` : ''}
+        </div>
+        <div class="card-footer">
+          <a href="${escHtml(liUrl)}" target="_blank" class="contact-btn">
+            <span class="contact-icon">↗</span> ${liLabel}
+          </a>
+          ${name ? `
+          <button class="contact-btn" onclick="copyText('${escAttr(name)}', this)">
+            <span class="contact-icon">⊕</span> Copy Name
+          </button>` : ''}
+          ${email ? `
+          <button class="contact-btn" onclick="copyText('${escAttr(email)}', this)">
+            <span class="contact-icon">✉</span> Copy Email
+          </button>` : ''}
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    document.getElementById('resultsSection').classList.add('visible');
+    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<span class="contact-icon">✓</span> Copied';
+      btn.style.color = 'var(--green)';
+      setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+    });
+  }
+
+  function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function escAttr(str) {
+    return String(str || '').replace(/'/g, "\\'");
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runQuery();
+  });
+</script>
+</body>
+</html>
