@@ -17,14 +17,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    const payload = { ...req.body, api_key: apolloKey };
+
     const response = await fetch('https://api.apollo.io/api/v1/mixed_people/api_search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-        'X-Api-Key': apolloKey
+        'Cache-Control': 'no-cache'
       },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify(payload)
     });
 
     const data = await response.json();
